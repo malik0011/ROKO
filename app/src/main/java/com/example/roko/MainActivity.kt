@@ -22,6 +22,8 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.LinearLayout
 import com.example.roko.utils.StorageHelper
 
 class MainActivity : AppCompatActivity() {
@@ -39,40 +41,52 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         
-        // Set up toolbar as action bar
-        val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        
-        window.statusBarColor = getColor(R.color.status_bar_blue)
-        
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        // Start with splash screen
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .add(R.id.main, SplashFragment())
+                .commit()
         }
-
-        // Create app directories
-        StorageHelper.createAppDirectories()
-
-        setupViewPager()
     }
 
-    private fun setupViewPager() {
+    fun setupMainContent() {
+        // Find the main content container
+        val mainContent = findViewById<LinearLayout>(R.id.mainContent)
+        mainContent.visibility = View.VISIBLE
+
+        // Set up ViewPager
         viewPager = findViewById(R.id.viewPager)
         tabLayout = findViewById(R.id.tabLayout)
 
+        // Initialize fragments
         compressFragment = CompressFragment()
         galleryFragment = GalleryFragment()
 
-        val pagerAdapter = ViewPagerAdapter(this)
-        pagerAdapter.addFragment(compressFragment, "Compress")
-        pagerAdapter.addFragment(galleryFragment, "Gallery")
+        // Set up ViewPager adapter
+        val pagerAdapter = object : FragmentStateAdapter(this) {
+            override fun getItemCount(): Int = 2
+            override fun createFragment(position: Int): Fragment {
+                return when (position) {
+                    0 -> compressFragment
+                    1 -> galleryFragment
+                    else -> throw IllegalArgumentException("Invalid position")
+                }
+            }
+        }
 
         viewPager.adapter = pagerAdapter
 
+        // Set up TabLayout with ViewPager
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = if (position == 0) "Compress" else "Gallery"
+            tab.text = when (position) {
+                0 -> "Compress"
+                1 -> "Gallery"
+                else -> ""
+            }
         }.attach()
+
+        // Create app directories
+        StorageHelper.createAppDirectories()
     }
 
     val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -132,18 +146,4 @@ class MainActivity : AppCompatActivity() {
             .addToBackStack(null)
             .commit()
     }
-}
-
-class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
-    private val fragments = mutableListOf<Fragment>()
-    private val fragmentTitles = mutableListOf<String>()
-
-    fun addFragment(fragment: Fragment, title: String) {
-        fragments.add(fragment)
-        fragmentTitles.add(title)
-    }
-
-    override fun getItemCount(): Int = fragments.size
-
-    override fun createFragment(position: Int): Fragment = fragments[position]
 }

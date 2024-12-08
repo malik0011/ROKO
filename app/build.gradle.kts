@@ -50,5 +50,6 @@ dependencies {
     implementation ("com.github.bumptech.glide:glide:4.15.1") // For image loading
     implementation ("id.zelory:compressor:3.0.1") // For image compression
     implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 }
