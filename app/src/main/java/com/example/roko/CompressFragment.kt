@@ -1,6 +1,7 @@
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.roko.MainActivity
 import com.example.roko.R
+import com.example.roko.utils.StorageHelper
 import com.google.android.material.snackbar.Snackbar
 import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.quality
@@ -21,29 +23,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
-import CompressFragment
-import GalleryFragment
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.roko.Utils.CompressedImageAdapter
-import id.zelory.compressor.constraint.quality
-import kotlinx.coroutines.launch
-import androidx.fragment.app.FragmentActivity
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
 
 class CompressFragment : Fragment() {
     private var selectedImageUri: Uri? = null
     private var compressionLevel: Int = 50
     private lateinit var imagePreview: ImageView
     private lateinit var mainActivity: MainActivity
+    private lateinit var tvImageSize: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,6 +44,7 @@ class CompressFragment : Fragment() {
         mainActivity = activity as MainActivity
 
         imagePreview = view.findViewById(R.id.imagePreview)
+        tvImageSize = view.findViewById(R.id.tvImageSize)
         val selectImageButton: Button = view.findViewById(R.id.btnSelectImage)
         val compressImageButton: Button = view.findViewById(R.id.btnCompressImage)
         val compressionSeekBar: SeekBar = view.findViewById(R.id.seekBarCompression)
@@ -101,6 +88,24 @@ class CompressFragment : Fragment() {
             .load(uri)
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(imagePreview)
+            
+        // Get and display image size
+        try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            val size = inputStream?.available()?.let { formatFileSize(it) } ?: "Unknown size"
+            tvImageSize.text = "Original Size: $size"
+            inputStream?.close()
+        } catch (e: Exception) {
+            tvImageSize.text = "Size: Unable to determine"
+        }
+    }
+
+    private fun formatFileSize(size: Int): String {
+        return when {
+            size < 1024 -> "$size B"
+            size < 1024 * 1024 -> String.format("%.1f KB", size / 1024f)
+            else -> String.format("%.1f MB", size / (1024f * 1024f))
+        }
     }
 
     fun compressImage(uri: Uri, compressionLevel: Int) {
@@ -116,29 +121,26 @@ class CompressFragment : Fragment() {
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    // Save original image to "OriginalPhotos"
-                    val originalFolder = File(requireContext().filesDir, "OriginalPhotos")
-                    if (!originalFolder.exists()) originalFolder.mkdirs()
+                    // Save original image to external storage
                     val originalFileName = "img_${System.currentTimeMillis()}.jpg"
-                    val originalFile = File(originalFolder, originalFileName)
+                    val originalFile = File(StorageHelper.getOriginalPhotosDirectory(), originalFileName)
                     tempFile.copyTo(originalFile, overwrite = true)
 
-                    // Compress the image and save to "CompressedPhotos"
-                    val compressedFolder = File(requireContext().filesDir, "CompressedPhotos")
-                    if (!compressedFolder.exists()) compressedFolder.mkdirs()
-                    
+                    // Compress the image and save to external storage
                     val compressedImageFile = Compressor.compress(requireContext(), tempFile) {
                         quality(compressionLevel)
-                    }.also { compressedFile ->
-                        compressedFile.copyTo(File(compressedFolder, originalFileName), overwrite = true)
                     }
+                    
+                    // Save the compressed file
+                    val compressedDestination = File(StorageHelper.getCompressedPhotosDirectory(), originalFileName)
+                    compressedImageFile.copyTo(compressedDestination, overwrite = true)
 
                     activity?.runOnUiThread {
                         // Create content URI using FileProvider
                         val contentUri = androidx.core.content.FileProvider.getUriForFile(
                             requireContext(),
                             "${requireContext().packageName}.provider",
-                            compressedImageFile
+                            compressedDestination
                         )
 
                         Snackbar.make(requireView(),
@@ -158,9 +160,14 @@ class CompressFragment : Fragment() {
                                 }
                             }.show()
 
-                        // Refresh the gallery fragment
+                        // Safely refresh the gallery fragment
                         (activity as? MainActivity)?.let { mainActivity ->
-                            mainActivity.galleryFragment.setUpRecyclerView()
+                            try {
+                                mainActivity.galleryFragment.setUpRecyclerView()
+                            } catch (e: Exception) {
+                                // Handle the case where gallery fragment is not ready
+                                Log.d("CompressFragment", "Gallery fragment not ready: ${e.message}")
+                            }
                         }
                     }
                 } catch (e: Exception) {

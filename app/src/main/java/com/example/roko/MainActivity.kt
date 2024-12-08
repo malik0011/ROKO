@@ -6,26 +6,12 @@ import InfoFragment
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import android.content.Intent
 import android.net.Uri
-import android.widget.Button
-import android.widget.SeekBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.example.roko.Utils.CompressedImageAdapter
 import com.google.android.material.snackbar.Snackbar
-import id.zelory.compressor.Compressor
-import id.zelory.compressor.constraint.quality
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
@@ -36,6 +22,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import android.view.Menu
 import android.view.MenuItem
+import com.example.roko.utils.StorageHelper
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,6 +50,9 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        // Create app directories
+        StorageHelper.createAppDirectories()
 
         setupViewPager()
     }
@@ -96,61 +86,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ... rest of your existing methods (compressImage, decompressImage, etc.) ..
-//.
     fun decompressImage(imageName: String) {
-        val originalFolder = File(filesDir, "OriginalPhotos")
-        val originalFile = File(originalFolder, imageName)
-
-        val compressedFolder = File(filesDir, "CompressedPhotos")
-        val compressedFile = File(compressedFolder, imageName)
+        val originalFile = File(StorageHelper.getOriginalPhotosDirectory(), imageName)
+        val compressedFile = File(StorageHelper.getCompressedPhotosDirectory(), imageName)
 
         if (originalFile.exists()) {
             originalFile.copyTo(compressedFile, overwrite = true)
             runOnUiThread {
                 // Notify the user
                 Toast.makeText(this, "Image decompressed successfully!", Toast.LENGTH_SHORT).show()
+                // Refresh gallery
+                galleryFragment.setUpRecyclerView()
             }
         } else {
             runOnUiThread {
                 Toast.makeText(this, "Original image not found!", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    fun compressImage(uri: Uri) {
-        val inputFile = File(uri.path ?: return)
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // Save original image to "OriginalPhotos"
-                val originalFolder = File(filesDir, "OriginalPhotos")
-                if (!originalFolder.exists()) originalFolder.mkdirs()
-                val originalFile = File(originalFolder, inputFile.name)
-                inputFile.copyTo(originalFile, overwrite = true)
-
-                // Compress the image and save to "CompressedPhotos"
-                val compressedFolder = File(filesDir, "CompressedPhotos")
-                if (!compressedFolder.exists()) compressedFolder.mkdirs()
-                val compressedImageFile = Compressor.compress(this@MainActivity, inputFile) {
-                    quality(compressionLevel)
-                }.also { compressedFile ->
-                    compressedFile.copyTo(File(compressedFolder, compressedFile.name), overwrite = true)
-                }
-
-                runOnUiThread {
-                    Snackbar.make(findViewById(android.R.id.content),
-                        "Image saved to CompressedPhotos", Snackbar.LENGTH_LONG)
-                        .setAction("Open") {
-                            val intent = Intent(Intent.ACTION_VIEW)
-                            intent.setDataAndType(Uri.fromFile(compressedImageFile), "image/*")
-                            startActivity(intent)
-                        }.show()
-                }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    Toast.makeText(this@MainActivity, "Compression failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
             }
         }
     }

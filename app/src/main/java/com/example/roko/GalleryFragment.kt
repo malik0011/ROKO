@@ -7,11 +7,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.roko.MainActivity
 import com.example.roko.R
-import com.example.roko.Utils.CompressedImageAdapter
-import java.io.File
+import com.example.roko.utils.CompressedImageAdapter
+import com.example.roko.utils.StorageHelper
 
 class GalleryFragment : Fragment() {
-    private lateinit var recyclerView: RecyclerView
+    private var _recyclerView: RecyclerView? = null
+    private val recyclerView get() = _recyclerView!!
     private lateinit var mainActivity: MainActivity
 
     override fun onCreateView(
@@ -25,17 +26,23 @@ class GalleryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mainActivity = activity as MainActivity
-        recyclerView = view.findViewById(R.id.rcv)
+        _recyclerView = view.findViewById(R.id.rcv)
         setUpRecyclerView()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _recyclerView = null
+    }
+
     fun setUpRecyclerView() {
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        val compressedFolder = File(requireContext().filesDir, "CompressedPhotos")
-        val compressedImages = compressedFolder.listFiles()?.toList() ?: emptyList()
-        val adapter = CompressedImageAdapter(compressedImages) { imageName ->
-            mainActivity.decompressImage(imageName)
+        _recyclerView?.let { rv ->
+            rv.layoutManager = LinearLayoutManager(context)
+            val compressedImages = StorageHelper.getCompressedPhotosDirectory().listFiles()?.toList() ?: emptyList()
+            val adapter = CompressedImageAdapter(compressedImages) { imageName ->
+                mainActivity.decompressImage(imageName)
+            }
+            rv.adapter = adapter
         }
-        recyclerView.adapter = adapter
     }
 } 

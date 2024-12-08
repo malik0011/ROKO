@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.roko.R
+import com.example.roko.utils.StorageHelper
 import java.io.File
 
 class InfoFragment : Fragment() {
@@ -35,8 +36,8 @@ class InfoFragment : Fragment() {
         tvVersion.text = "Version ${packageInfo.versionName} (${packageInfo.versionCode})"
 
         // Get storage paths
-        val originalPath = File(requireContext().filesDir, "OriginalPhotos").absolutePath
-        val compressedPath = File(requireContext().filesDir, "CompressedPhotos").absolutePath
+        val originalPath = StorageHelper.getOriginalPhotosDirectory().absolutePath
+        val compressedPath = StorageHelper.getCompressedPhotosDirectory().absolutePath
 
         tvOriginalPath.text = "Original Photos:\n$originalPath"
         tvCompressedPath.text = "Compressed Photos:\n$compressedPath"

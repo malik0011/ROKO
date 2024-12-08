@@ -46,6 +46,15 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/ic_image_placeholder"/>
 
+                <TextView
+                    android:id="@+id/tvImageSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="#000000"
+                    android:textSize="14sp"/>
+
             </androidx.cardview.widget.CardView>
 
             <!-- Compression Level Label -->
