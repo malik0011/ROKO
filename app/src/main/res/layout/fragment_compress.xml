@@ -1,0 +1,93 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Select Image Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Image"
+                android:textAllCaps="false"
+                app:cornerRadius="8dp"
+                android:backgroundTint="#6200EE"
+                android:padding="12dp"/>
+
+            <!-- Selected Image Preview -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <ImageView
+                    android:id="@+id/imagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_image_placeholder"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Compression Level Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Compression Level"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Compression Level Seekbar -->
+            <SeekBar
+                android:id="@+id/seekBarCompression"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="50"
+                android:progressTint="#6200EE"
+                android:thumbTint="#6200EE"/>
+
+            <!-- Compression Level Indicator -->
+            <TextView
+                android:id="@+id/tvCompressionLevel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50%"
+                android:textColor="#666666"
+                android:layout_gravity="center"
+                android:layout_marginTop="4dp"/>
+
+            <!-- Compress Image Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCompressImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Compress Image"
+                android:textAllCaps="false"
+                app:cornerRadius="8dp"
+                android:backgroundTint="#03DAC5"
+                android:layout_marginTop="16dp"
+                android:padding="12dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout> 

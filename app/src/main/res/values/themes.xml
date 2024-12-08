@@ -1,0 +1,14 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.ROKO" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/status_bar_blue</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="colorPrimary">@color/status_bar_blue</item>
+        <item name="colorPrimaryDark">@color/status_bar_blue</item>
+    </style>
+
+    <style name="Theme.ROKO" parent="Base.Theme.ROKO" />
+</resources>
