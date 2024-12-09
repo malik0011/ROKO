@@ -19,8 +19,7 @@ class CompressedImageAdapter(
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.imageView)
-        val tvImageName: TextView = view.findViewById(R.id.tvImageName)
-        val tvImageSize: TextView = view.findViewById(R.id.tvImageSize)
+        val tvImageSize: TextView = view.findViewById(R.id.imageColor)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -39,11 +38,11 @@ class CompressedImageAdapter(
             .into(holder.imageView)
 
         // Set image name
-        holder.tvImageName.text = image.name
+//        holder.tvImageName.text = image.name
 
         // Set image size
         val size = formatFileSize(image.length())
-        holder.tvImageSize.text = size
+        holder.tvImageSize.text = "Image Size: $size"
 
         holder.itemView.setOnClickListener {
             onItemClick(image.name)
